@@ -12,18 +12,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import app.khonkheree.ui.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(
-    onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit = {},
+fun RegisterScreen(
+    onRegisterSuccess: () -> Unit,
+    onBackToLogin: () -> Unit,
     vm: AuthViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsState()
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisibleA by remember { mutableStateOf(false) }
+    var passwordVisibleB by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isLoggedIn) {
-        if (state.isLoggedIn) onLoginSuccess()
+        if (state.isLoggedIn) onRegisterSuccess()
     }
 
     Column(
@@ -34,17 +37,29 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Нэвтрэх",
+            text = "Бүртгүүлэх",
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Цаашлах бүртгэл ашиглан нэвтрэнэ үү",
+            text = "Шинэ бүртгэл үүсгэхийн тулд дор өгсөн өгөгдлийг нөхнө үү",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(32.dp))
 
+        // Name field
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Нэр *") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = state.error != null && name.isBlank(),
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // Email field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -56,17 +71,18 @@ fun LoginScreen(
         )
         Spacer(Modifier.height(12.dp))
 
+        // Password field
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Нууц үг *") },
             singleLine = true,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisibleA) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                IconButton(onClick = { passwordVisibleA = !passwordVisibleA }) {
                     Icon(
-                        if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        if (passwordVisibleA) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         "Нууц үг харуулах"
                     )
                 }
@@ -74,8 +90,38 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             isError = state.error != null && password.isBlank(),
         )
+        Spacer(Modifier.height(12.dp))
+
+        // Confirm password field
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Нууц үг давтах *") },
+            singleLine = true,
+            visualTransformation = if (passwordVisibleB) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisibleB = !passwordVisibleB }) {
+                    Icon(
+                        if (passwordVisibleB) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        "Нууц үг харуулах"
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            isError = password.isNotEmpty() && password != confirmPassword,
+        )
+        if (password.isNotEmpty() && password != confirmPassword) {
+            Text(
+                "Нууц үг тэлэхгүй байна",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.align(Alignment.Start).padding(start = 16.dp)
+            )
+        }
         Spacer(Modifier.height(24.dp))
 
+        // Error message
         state.error?.let {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                 Text(
@@ -88,11 +134,16 @@ fun LoginScreen(
             Spacer(Modifier.height(16.dp))
         }
 
+        // Register button
         Button(
             onClick = {
-                vm.login(email, password)
+                vm.register(name, email, password)
             },
-            enabled = !state.isLoading && email.isNotBlank() && password.isNotBlank(),
+            enabled = !state.isLoading
+                && name.isNotBlank()
+                && email.isNotBlank()
+                && password.isNotBlank()
+                && password == confirmPassword,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -100,13 +151,15 @@ fun LoginScreen(
             if (state.isLoading) {
                 CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Нэвтрэх")
+                Text("Бүртгүүлэх")
             }
         }
+
         Spacer(Modifier.height(16.dp))
 
-        TextButton(onClick = onNavigateToRegister) {
-            Text("Шинэ бүртгэл үүсгэх")
+        // Back to login
+        TextButton(onClick = onBackToLogin) {
+            Text("Бүртгэлтэй бол нэвтрэх")
         }
     }
 }
@@ -116,4 +169,5 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.CardDefaults
+
+// Note: Make sure to import Icons properly in actual usage
