@@ -20,6 +20,6 @@ class AuthRepository @Inject constructor(
         tokenStore.save(tokens.access_token, tokens.refresh_token)
     }
 
-    fun logout() = tokenStore.clear()
+    suspend fun logout() = tokenStore.clear()
     fun isLoggedIn() = tokenStore.accessToken != null
 }

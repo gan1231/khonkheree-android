@@ -14,6 +14,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.khonkheree.data.api.BookOut
+import app.khonkheree.ui.components.BookCard
+import app.khonkheree.ui.components.statusLabel
 import app.khonkheree.ui.viewmodel.BookViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,9 +30,21 @@ fun LibraryScreen(
     LaunchedEffect(Unit) { vm.loadMyBooks() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Миний номын сан") }) },
+        topBar = { 
+            TopAppBar(
+                title = { Text("Миний номын сан", style = MaterialTheme.typography.titleLarge) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
+            ) 
+        },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddBook) {
+            FloatingActionButton(
+                onClick = onAddBook,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Ном нэмэх")
             }
         }
@@ -45,9 +59,10 @@ fun LibraryScreen(
                 state.books.isEmpty() -> Text(
                     "Номын сан хоосон байна.\n+ товч дарж ном нэмнэ үү.",
                     modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
-                else -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                else -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(state.books, key = { it.id }) { book ->
                         BookCard(book = book, onClick = { onBookClick(book.id) })
                     }
@@ -57,44 +72,5 @@ fun LibraryScreen(
     }
 }
 
-@Composable
-fun BookCard(book: BookOut, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(2.dp),
-    ) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            // Cover placeholder
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(book.title.take(1), style = MaterialTheme.typography.headlineSmall)
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(book.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(book.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(4.dp))
-                AssistChip(
-                    onClick = {},
-                    label = { Text(statusLabel(book.status), style = MaterialTheme.typography.labelSmall) },
-                )
-            }
-            Text("${book.review_count} сэтгэгдэл", style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
 
-private fun statusLabel(status: String) = when (status) {
-    "owned" -> "Эзэмшиж байна"
-    "want_to_read" -> "Уншихыг хүсэж байна"
-    "want_to_discuss" -> "Санал бодол солилцоно"
-    "for_sale" -> "Зарна"
-    "for_exchange" -> "Солилцоно"
-    else -> status
-}
+// BookCard and statusLabel removed as they are now in BookComponents.kt

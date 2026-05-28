@@ -35,7 +35,7 @@ class AuthViewModel @Inject constructor(private val repo: AuthRepository) : View
             .onFailure { e -> _state.update { it.copy(isLoading = false, error = e.message) } }
     }
 
-    fun logout() {
+    fun logout() = viewModelScope.launch {
         repo.logout()
         _state.update { it.copy(isLoggedIn = false) }
     }
